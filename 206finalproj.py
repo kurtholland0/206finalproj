@@ -15,7 +15,7 @@ def make_f1_DB(name):
 def get_f1_tracks(cur,conn):
     year_counter = 2010
     cur.execute("CREATE TABLE IF NOT EXISTS F1_Track_Names (id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, lat FLOAT, long FLOAT)")
-    for year in range(2010,2020):
+    for year in range(1968,2021):
         url = 'http://ergast.com/api/f1/{}/circuits.json'
         requests_url = url.format(year_counter)
         r = requests.get(requests_url)
@@ -32,7 +32,7 @@ def get_f1_tracks(cur,conn):
 
 def get_f1_data(cur, conn):
     cur.execute("CREATE TABLE IF NOT EXISTS F1_Times (id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, track_id INTEGER, fastest_time INTEGER UNIQUE)")
-    year = random.randint(1950, 2021)
+    year = random.randint(1968, 2021)
     url = 'https://ergast.com/api/f1/{}/results/1.json'
     requests_url = url.format(year,)
     r = requests.get(requests_url)
