@@ -30,7 +30,9 @@ def get_f1_tracks(cur,conn):
 
 
 def get_f1_data(cur, conn):
-    for year in range(1950,2020):
+    cur.execute("CREATE TABLE IF NOT EXISTS F1_Times (id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, track_id INTEGER, fastest_time INTEGER)")
+    year_counter = 2010
+    for year in range(2010,2020):
         url = 'https://ergast.com/api/f1/{}/results/1.json'
         requests_url = url.format(year_counter,)
         r = requests.get(requests_url)
@@ -39,13 +41,14 @@ def get_f1_data(cur, conn):
         for index in range(len(races)):
             time = loaded_data['MRData']['RaceTable']['Races'][index]['Results'][0]['Time']['millis']
             track = loaded_data['MRData']['RaceTable']['Races'][index]['Circuit']['circuitName']
-            if track in tracks:
-                cur.exe
+            cur.execute("INSERT INTO F1_Times (track_id, fastest_time) SELECT F1_Track_Names.id, ? FROM F1_Track_Names WHERE F1_Track_Names.name = ?", (time, track,))
         year_counter += 1
+    conn.commit()
 
 def main():
     cur, conn = make_f1_DB("F1DATABASE.db")
     get_f1_tracks(cur, conn)
+    get_f1_data(cur, conn)
 
 main()
 
