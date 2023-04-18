@@ -3,7 +3,6 @@ import sqlite3
 import json
 import os
 import matplotlib.pyplot as plt
-import xml.etree.ElementTree as ET
 import random
 
 def make_f1_DB(name):
@@ -12,27 +11,24 @@ def make_f1_DB(name):
     cur = conn.cursor()
     return cur, conn
 
-def get_f1_tracks(cur,conn):
-    year_counter = 2010
+
+def get_f1_tracks(cur,conn, year):
     cur.execute("CREATE TABLE IF NOT EXISTS F1_Track_Names (id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, lat FLOAT, long FLOAT)")
-    for year in range(1968,2021):
-        url = 'http://ergast.com/api/f1/{}/circuits.json'
-        requests_url = url.format(year_counter)
-        r = requests.get(requests_url)
-        loaded_data = json.loads(r.text)
-        circuits = loaded_data["MRData"]["CircuitTable"]["Circuits"]
-        for index in range(len(circuits)):
-            circuit_name = loaded_data["MRData"]["CircuitTable"]["Circuits"][index]["circuitName"]
-            circuit_lat = float(loaded_data["MRData"]["CircuitTable"]["Circuits"][index]["Location"]["lat"])
-            circuit_long = float(loaded_data["MRData"]["CircuitTable"]["Circuits"][index]["Location"]["lat"])
-            cur.execute("INSERT OR IGNORE INTO F1_Track_Names (name,lat,long) VALUES (?,?,?)", (circuit_name,circuit_lat,circuit_long,))
-        year_counter += 1
+    url = 'http://ergast.com/api/f1/{}/circuits.json'
+    requests_url = url.format(year)
+    r = requests.get(requests_url)
+    loaded_data = json.loads(r.text)
+    circuits = loaded_data["MRData"]["CircuitTable"]["Circuits"]
+    for index in range(len(circuits)):
+        circuit_name = loaded_data["MRData"]["CircuitTable"]["Circuits"][index]["circuitName"]
+        circuit_lat = float(loaded_data["MRData"]["CircuitTable"]["Circuits"][index]["Location"]["lat"])
+        circuit_long = float(loaded_data["MRData"]["CircuitTable"]["Circuits"][index]["Location"]["lat"])
+        cur.execute("INSERT OR IGNORE INTO F1_Track_Names (name,lat,long) VALUES (?,?,?)", (circuit_name,circuit_lat,circuit_long,))
     conn.commit()
 
 
-def get_f1_data(cur, conn):
+def get_f1_data(cur, conn, year):
     cur.execute("CREATE TABLE IF NOT EXISTS F1_Times (id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, track_id INTEGER, fastest_time INTEGER UNIQUE)")
-    year = random.randint(1968, 2021)
     url = 'https://ergast.com/api/f1/{}/results/1.json'
     requests_url = url.format(year,)
     r = requests.get(requests_url)
@@ -45,9 +41,10 @@ def get_f1_data(cur, conn):
     conn.commit()
 
 def main():
+    year = random.randint(1968, 2021)
     cur, conn = make_f1_DB("F1DATABASE.db")
-    get_f1_tracks(cur, conn)
-    get_f1_data(cur, conn)
+    get_f1_tracks(cur, conn, year)
+    get_f1_data(cur, conn, year)
 
 main()
 
