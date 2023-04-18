@@ -4,6 +4,7 @@ import json
 import os
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
+import random
 
 def make_f1_DB(name):
     path = os.path.dirname(os.path.abspath(__file__))
@@ -31,18 +32,16 @@ def get_f1_tracks(cur,conn):
 
 def get_f1_data(cur, conn):
     cur.execute("CREATE TABLE IF NOT EXISTS F1_Times (id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, track_id INTEGER, fastest_time INTEGER UNIQUE)")
-    year_counter = 2010
-    for year in range(2010,2020):
-        url = 'https://ergast.com/api/f1/{}/results/1.json'
-        requests_url = url.format(year_counter,)
-        r = requests.get(requests_url)
-        loaded_data = json.loads(r.text)
-        races = loaded_data['MRData']['RaceTable']['Races']
-        for index in range(len(races)):
-            time = loaded_data['MRData']['RaceTable']['Races'][index]['Results'][0]['Time']['millis']
-            track = loaded_data['MRData']['RaceTable']['Races'][index]['Circuit']['circuitName']
-            cur.execute("INSERT OR IGNORE INTO F1_Times (track_id, fastest_time) SELECT F1_Track_Names.id, ? FROM F1_Track_Names WHERE F1_Track_Names.name = ?", (time, track,))
-        year_counter += 1
+    year = random.randint(1950, 2021)
+    url = 'https://ergast.com/api/f1/{}/results/1.json'
+    requests_url = url.format(year,)
+    r = requests.get(requests_url)
+    loaded_data = json.loads(r.text)
+    races = loaded_data['MRData']['RaceTable']['Races']
+    for index in range(len(races)):
+        time = loaded_data['MRData']['RaceTable']['Races'][index]['Results'][0]['Time']['millis']
+        track = loaded_data['MRData']['RaceTable']['Races'][index]['Circuit']['circuitName']
+        cur.execute("INSERT OR IGNORE INTO F1_Times (track_id, fastest_time) SELECT F1_Track_Names.id, ? FROM F1_Track_Names WHERE F1_Track_Names.name = ?", (time, track,))
     conn.commit()
 
 def main():
