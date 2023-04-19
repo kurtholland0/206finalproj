@@ -27,7 +27,7 @@ def get_f1_tracks(cur,conn, year):
 
 
 def get_f1_data(cur, conn, year):
-    cur.execute("CREATE TABLE IF NOT EXISTS F1_Times (id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, track_id INTEGER, fastest_time INTEGER UNIQUE)")
+    cur.execute("CREATE TABLE IF NOT EXISTS F1_Times (id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT, track_id INTEGER, fastest_time INTEGER UNIQUE, date TEXT)")
     url = 'https://ergast.com/api/f1/{}/results/1.json'
     requests_url = url.format(year,)
     r = requests.get(requests_url)
@@ -36,8 +36,10 @@ def get_f1_data(cur, conn, year):
     for index in range(len(races)):
         time = loaded_data['MRData']['RaceTable']['Races'][index]['Results'][0]['Time']['millis']
         track = loaded_data['MRData']['RaceTable']['Races'][index]['Circuit']['circuitName']
-        cur.execute("INSERT OR IGNORE INTO F1_Times (track_id, fastest_time) SELECT F1_Track_Names.id, ? FROM F1_Track_Names WHERE F1_Track_Names.name = ?", (time, track,))
+        date = loaded_data["MRData"]["RaceTable"]["Races"][index]["date"]
+        cur.execute("INSERT OR IGNORE INTO F1_Times (track_id, fastest_time, date) VALUES ((SELECT id FROM F1_Track_Names WHERE name = ?), ?, ?)", (track, time, date))
     conn.commit()
+
 
 def main():
     year = random.randint(1968, 2021)
