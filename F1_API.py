@@ -2,7 +2,6 @@ import requests
 import sqlite3
 import json
 import os
-import matplotlib.pyplot as plt
 import random
 
 def make_f1_DB(name):
@@ -42,7 +41,7 @@ def get_f1_data(cur, conn, year):
 
 def main():
     year = random.randint(1968, 2021)
-    cur, conn = make_f1_DB("F1DATABASE.db")
+    cur, conn = make_f1_DB("F1_Data.db")
     get_f1_tracks(cur, conn, year)
     get_f1_data(cur, conn, year)
 
