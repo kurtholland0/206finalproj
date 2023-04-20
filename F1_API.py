@@ -42,7 +42,7 @@ def get_f1_data(cur, conn, year):
 
 
 def main():
-    year = random.randint(1970, 2021)
+    year = random.randint(1980, 2021)
     cur, conn = make_f1_DB("F1_Data.db")
     get_f1_tracks(cur, conn, year)
     get_f1_data(cur, conn, year)
