@@ -2,11 +2,10 @@ import requests
 import sqlite3
 import os
 from datetime import datetime
-
-API_KEY = '9c5e56635b172ff8a5e4881052968d14'
+import apikey
 
 def get_weather_data(lat, lon, dt):
-    url = f'https://api.openweathermap.org/data/3.0/onecall/timemachine?lat={lat}&lon={lon}&dt={dt}&appid={API_KEY}'
+    url = f'https://api.openweathermap.org/data/3.0/onecall/timemachine?lat={lat}&lon={lon}&dt={dt}&appid={apikey.API_KEY}'
     response = requests.get(url)
     data = response.json()
     return data
