@@ -25,7 +25,7 @@ def get_weather_data(lat, lon, dt):
     data = response.json()
     return data
 
-def store_weather_data(cur, conn, track_id, lat, lon, race_date):
+def store_weather_data(cur, conn, race_id, track_id, lat, lon, race_date):
     """
     Store weather data for a specific track and race date in the F1_Weather table.
 
@@ -46,8 +46,7 @@ def store_weather_data(cur, conn, track_id, lat, lon, race_date):
     Inserts the weather data into the F1_Weather table if valid data is available. Prints messages
     regarding the insertion status and any missing data.
     """
-    cur.execute("CREATE TABLE IF NOT EXISTS F1_Weather (track_id INTEGER UNIQUE PRIMARY KEY, race_date TEXT, temp FLOAT, humidity INTEGER, wind_speed FLOAT, FOREIGN KEY(track_id) REFERENCES F1_Track_Names(id))")
-    
+    cur.execute("CREATE TABLE IF NOT EXISTS F1_Weather (id INTEGER PRIMARY KEY, track_id INTEGER, race_date TEXT, temp FLOAT, humidity INTEGER, wind_speed FLOAT, FOREIGN KEY(track_id) REFERENCES F1_Track_Names(id))")
     unix_timestamp = int(datetime.strptime(race_date, '%Y-%m-%d').strftime('%s'))
     weather_data = get_weather_data(lat, lon, unix_timestamp)
     print(f"Weather data for track_id {track_id}, race_date {race_date}: {weather_data}")
@@ -62,12 +61,24 @@ def store_weather_data(cur, conn, track_id, lat, lon, race_date):
 
         if temp is not None and humidity is not None and wind_speed is not None:
             print(f"Inserting data for track_id {track_id}, race_date {race_date}, temp {temp}, humidity {humidity}, wind_speed {wind_speed}")
-            cur.execute("INSERT OR IGNORE INTO F1_Weather (track_id, race_date, temp, humidity, wind_speed) VALUES (?, ?, ?, ?, ?)", (track_id, race_date, temp, humidity, wind_speed))
+            cur.execute("INSERT OR IGNORE INTO F1_Weather (id, track_id, race_date, temp, humidity, wind_speed) VALUES (?, ?, ?, ?, ?, ?)", (race_id, track_id, race_date, temp, humidity, wind_speed))
             conn.commit()
         else:
             print(f"Data not inserted for track_id {track_id}, race_date {race_date}. Temp: {temp}, Humidity: {humidity}, Wind speed: {wind_speed}")
     else:
         print(f"No data available for track_id {track_id}, race_date {race_date}")
+
+def get_last_processed_race_index(file_path):
+    if os.path.exists(file_path):
+        with open(file_path, "r") as f:
+            index = f.read().strip()
+            if index:
+                return int(index)
+    return 0
+
+def update_last_processed_race_index(file_path, index):
+    with open(file_path, "w") as f:
+        f.write(str(index))
 
 def collect_weather_data(cur, conn):
     """
@@ -86,16 +97,22 @@ def collect_weather_data(cur, conn):
     inserts the weather data into the F1_Weather table if valid data is available.
     """
     cur.execute("SELECT id, lat, long FROM F1_Track_Names")
-    tracks = cur.fetchall()
+    tracks = {track_id: (lat, lon) for track_id, lat, lon in cur.fetchall()}
 
-    cur.execute("SELECT track_id, date FROM F1_Times")
+    cur.execute("SELECT id, track_id, date FROM F1_Times")
     race_dates = cur.fetchall()
-    track_race_dates = {track_id: race_date for track_id, race_date in race_dates}
 
-    for track_id, lat, lon in tracks:
-        if track_id in track_race_dates:
-            race_date = track_race_dates[track_id]
-            store_weather_data(cur, conn, track_id, lat, lon, race_date)
+    index_file = "last_processed_race_index.txt"
+    last_processed_index = get_last_processed_race_index(index_file)
+    races_to_process = 25
+    end_index = min(last_processed_index + races_to_process, len(race_dates))
+
+    for i in range(last_processed_index, end_index):
+        race_id, track_id, race_date = race_dates[i]
+        lat, lon = tracks[track_id]
+        store_weather_data(cur, conn, race_id, track_id, lat, lon, race_date)
+
+    update_last_processed_race_index(index_file, end_index)
 
 def main():
     path = os.path.dirname(os.path.abspath(__file__))
