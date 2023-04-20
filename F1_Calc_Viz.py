@@ -3,6 +3,15 @@ import csv
 import matplotlib.pyplot as plt
 
 def calculations(cur):
+    """Calculates the average fastest lap time for each F1 track stored in the SQLite tables "F1_Times" and "F1_Track_Names".
+    
+    Args:
+    cur (cursor object): Cursor object of a SQLite connection
+    
+    Returns:
+    A dictionary with track names as keys and their corresponding average fastest lap times as values."""
+
+
     avg_time_dic = {}
     cur.execute("SELECT id FROM F1_Track_Names")
     rows = cur.fetchall()
@@ -18,6 +27,15 @@ def calculations(cur):
 
 
 def write_file(data):
+    """Writes a dictionary of F1 track names and their corresponding average fastest lap times to a CSV file named "avg_fastest_time_at_track.csv".
+    
+    Args:
+    data (dict): A dictionary with track names as keys and their corresponding average fastest lap times as values.
+    
+    Returns:
+    None"""
+
+
     with open('avg_fastest_time_at_track.csv', mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(['Track Name', 'Average Fastest Time'])
@@ -26,6 +44,14 @@ def write_file(data):
 
 
 def make_visualization(data):
+    """Generates a horizontal bar chart visualization showing the average fastest lap time for each F1 track.
+    
+    Args:
+    data (dict): A dictionary with track names as keys and their corresponding average fastest lap times as values.
+    
+    Returns:
+    None"""
+
     track_names = list(data.keys())
     fastest_times = list(data.values())
 
