@@ -69,6 +69,19 @@ def store_weather_data(cur, conn, race_id, track_id, lat, lon, race_date):
         print(f"No data available for track_id {track_id}, race_date {race_date}")
 
 def get_last_processed_race_index(file_path):
+    """
+    Get the last processed race index from the specified file.
+
+    This function reads the index value from the file specified by the file_path.
+    If the file exists and contains a valid index, the function returns the integer
+    value of the index. Otherwise, it returns 0.
+
+    Args:
+    file_path (str): The path to the file containing the last processed race index.
+
+    Returns:
+    int: The last processed race index, or 0 if the file doesn't exist or is empty.
+    """
     if os.path.exists(file_path):
         with open(file_path, "r") as f:
             index = f.read().strip()
@@ -77,6 +90,19 @@ def get_last_processed_race_index(file_path):
     return 0
 
 def update_last_processed_race_index(file_path, index):
+    """
+    Update the last processed race index in the specified file.
+
+    This function writes the given index value to the file specified by the file_path.
+    The index is stored as a string.
+
+    Args:
+    file_path (str): The path to the file containing the last processed race index.
+    index (int): The new index value to be written to the file.
+
+    Side Effects:
+    Updates the specified file with the new index value.
+    """
     with open(file_path, "w") as f:
         f.write(str(index))
 
